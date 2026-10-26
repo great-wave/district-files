@@ -34,3 +34,12 @@ jobs:
         env:
           DRIVE_FOLDER_ID: ${{ vars.DRIVE_FOLDER_ID }}
           DRIVE_LOG_FOLDER_ID: ${{ vars.DRIVE_LOG_FOLDER_ID }}
+
+      - name: Save output
+        if: always()            # keep files even when the run fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: district-files-output
+          path: |
+            shapefiles_output/
+            logs/run_log.csv

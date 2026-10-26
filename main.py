@@ -26,8 +26,9 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", "").strip()
 DRIVE_LOG_FOLDER_ID = os.getenv("DRIVE_LOG_FOLDER_ID", "").strip()
 
-if not DRIVE_FOLDER_ID or not DRIVE_LOG_FOLDER_ID:
-    raise RuntimeError("Missing required Google Drive folder IDs")
+UPLOAD = bool(DRIVE_FOLDER_ID and DRIVE_LOG_FOLDER_ID)
+if not UPLOAD:
+    print("[INFO] Drive folder IDs not set; skipping uploads.")
 
 # District API endpoints (ArcGIS REST services)
 API_URLS = {
@@ -113,9 +114,10 @@ def main():
             print(f"[OK] Saved GeoJSON: {geojson_path}")
 
             # Upload to Google Drive
-            print(f"[UPLOAD] Uploading {district} files to Google Drive...")
-            drive_operations.upload_file_to_drive(DRIVE_FOLDER_ID, json_path, f"{district}.json")
-            drive_operations.upload_file_to_drive(DRIVE_FOLDER_ID, geojson_path, f"{district}.geojson")
+            if UPLOAD:
+                print(f"[UPLOAD] Uploading {district} files to Google Drive...")
+                drive_operations.upload_file_to_drive(DRIVE_FOLDER_ID, json_path, f"{district}.json")
+                drive_operations.upload_file_to_drive(DRIVE_FOLDER_ID, geojson_path, f"{district}.geojson")
 
         except Exception as e:
             error = str(e)
@@ -141,15 +143,17 @@ def main():
         log_run(entry)
 
     # Upload Log File
-    try:
-        log_path = os.path.join("logs", "run_log.csv")
-        if os.path.exists(log_path):
-             print(f"[UPLOAD] Uploading run_log.csv to Google Drive...")
-             drive_operations.upload_file_to_drive(DRIVE_LOG_FOLDER_ID, log_path, "run_log.csv")
-        else:
-             print(f"[WARN] Log file not found at {log_path}, skipping upload.")
-    except Exception as e:
-        print(f"[ERROR] Failed to upload log file: {e}")
+
+    if UPLOAD:
+        try:
+            log_path = os.path.join("logs", "run_log.csv")
+            if os.path.exists(log_path):
+                 print(f"[UPLOAD] Uploading run_log.csv to Google Drive...")
+                 drive_operations.upload_file_to_drive(DRIVE_LOG_FOLDER_ID, log_path, "run_log.csv")
+            else:
+                 print(f"[WARN] Log file not found at {log_path}, skipping upload.")
+        except Exception as e:
+            print(f"[ERROR] Failed to upload log file: {e}")
 
 
 if __name__ == "__main__":
