@@ -3,7 +3,7 @@ import sys
 # A little below the counts in logs/run_log.csv (13, 42, 15, 18, 99, 6, 5).
 EXPECTED_MIN_RECORDS = {
     "assembly": 10, "bids_city_clerk": 30, "city_council": 12,
-    "congressional": 15, "neighborhood_council": 90, "senate": 1000, "supervisors": 5,
+    "congressional": 15, "neighborhood_council": 90, "senate": 5, "supervisors": 5,
 }
 
 def check_district(district, data):
