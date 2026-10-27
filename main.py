@@ -13,6 +13,7 @@ from shapely.geometry import shape
 import geopandas as gpd
 from io import StringIO
 from drive_utils import drive_operations
+from validate import check_district, fail_if_problems
 
 # -------------------------------
 # Configuration
@@ -76,6 +77,7 @@ def save_as_geojson(data: dict, filepath: str) -> None:
 def main():
     init_log()
     run_id = new_run_id()
+    all_problems = []
 
     for district, url in API_URLS.items():
         print(f"Fetching {district} data...")
@@ -94,6 +96,7 @@ def main():
             status_code = response.status_code
             response.raise_for_status()
             data = response.json()
+            all_problems += check_district(district, data)
 
             # Save raw JSON
             json_path = os.path.join(OUTPUT_DIR, f"{district}.json")
@@ -122,6 +125,7 @@ def main():
         except Exception as e:
             error = str(e)
             print(f"[ERROR] Error processing {district}: {error}")
+            all_problems.append(f"{district}: {error}")
 
         elapsed = round(time.time() - start, 2)
 
@@ -142,6 +146,7 @@ def main():
         }
         log_run(entry)
 
+    
     # Upload Log File
 
     if UPLOAD:
@@ -155,6 +160,7 @@ def main():
         except Exception as e:
             print(f"[ERROR] Failed to upload log file: {e}")
 
+    fail_if_problems(all_problems)
 
 if __name__ == "__main__":
     main()
